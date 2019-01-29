@@ -1,0 +1,109 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v4.json",
+  "autosize": "pad",
+  "padding": 5,
+  "title": {"text": "Average Daily Flight Departure Delay", "frame": "group"},
+  "style": "cell",
+  "data": [
+    {"name": "source"},
+    {
+      "name": "data_0",
+      "source": "source",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["flight_dayofmonth", "flight_month"],
+          "ops": ["average"],
+          "fields": ["depdelay"],
+          "as": ["average_depdelay"]
+        }
+      ]
+    }
+  ],
+  "signals": [
+    {"name": "x_step", "value": 20},
+    {"name": "width", "update": "bandspace(domain('x').length, 0, 0) * x_step"},
+    {"name": "y_step", "value": 20},
+    {"name": "height", "update": "bandspace(domain('y').length, 0, 0) * y_step"}
+  ],
+  "marks": [
+    {
+      "name": "marks",
+      "type": "rect",
+      "style": ["rect"],
+      "from": {"data": "data_0"},
+      "encode": {
+        "update": {
+          "fill": [
+            {
+              "test": "datum[\"average_depdelay\"] === null || isNaN(datum[\"average_depdelay\"])",
+              "value": null
+            },
+            {"scale": "color", "field": "average_depdelay"}
+          ],
+          "tooltip": {
+            "signal": "{\"day\": ''+datum[\"flight_dayofmonth\"], \"month\": ''+datum[\"flight_month\"], \"average delay\": format(datum[\"average_depdelay\"], \"\")}"
+          },
+          "x": {"scale": "x", "field": "flight_dayofmonth"},
+          "width": {"scale": "x", "band": true},
+          "y": {"scale": "y", "field": "flight_month"},
+          "height": {"scale": "y", "band": true}
+        }
+      }
+    }
+  ],
+  "scales": [
+    {
+      "name": "x",
+      "type": "band",
+      "domain": {"data": "data_0", "field": "flight_dayofmonth", "sort": true},
+      "range": {"step": {"signal": "x_step"}},
+      "paddingInner": 0,
+      "paddingOuter": 0
+    },
+    {
+      "name": "y",
+      "type": "band",
+      "domain": {"data": "data_0", "field": "flight_month", "sort": true},
+      "range": {"step": {"signal": "y_step"}},
+      "paddingInner": 0,
+      "paddingOuter": 0
+    },
+    {
+      "name": "color",
+      "type": "sequential",
+      "domain": {"data": "data_0", "field": "average_depdelay"},
+      "range": "heatmap",
+      "zero": false
+    }
+  ],
+  "axes": [
+    {
+      "scale": "x",
+      "orient": "bottom",
+      "grid": false,
+      "title": "day",
+      "labelAlign": "right",
+      "labelAngle": 270,
+      "labelBaseline": "middle",
+      "labelOverlap": true,
+      "zindex": 1
+    },
+    {
+      "scale": "y",
+      "orient": "left",
+      "grid": false,
+      "title": "month",
+      "labelOverlap": true,
+      "zindex": 1
+    }
+  ],
+  "legends": [
+    {
+      "title": "average delay",
+      "fill": "color",
+      "gradientLength": {"signal": "clamp(height, 64, 200)"}
+    }
+  ],
+  "config": {"axisY": {"minExtent": 30}}
+}
