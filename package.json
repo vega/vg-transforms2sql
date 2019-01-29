@@ -6,7 +6,7 @@
   "scripts": {
     "start": "cp -R ./specs ./dist && parcel src/index.html --out-dir dist/",
     "clean": "rm -rf dist && rm -rf .cache && rm -rf build",
-    "build:demos": "parcel build --public-url '/vega-lite-transforms2sql/' src/index.html",
+    "build:demos": "parcel build --public-url '/vg-transforms2sql/' src/index.html",
     "deploy:demos": "npm run clean && npm run build:demos && gh-pages -d dist"
   },
   "devDependencies": {
@@ -16,7 +16,8 @@
   "dependencies": {
     "@mapd/connector": "^4.4.0",
     "gh-pages": "^1.2.0",
-    "vega-embed": "^3.20.0",
+    "vega": "^4.4.0",
+    "vega-embed": "^3.29.0",
     "vega-expression": "^2.3.1",
     "vega-typings": "^0.3.45"
   }

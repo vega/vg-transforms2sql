@@ -1,7 +1,8 @@
 import "@mapd/connector/dist/browser-connector";
+import * as vega from "vega";
 import embed from "vega-embed";
+import { Transforms2SQL } from "./transforms2sql";
 // import { defaultConfig } from "vega-lite/build/src/config";
-// import { Transforms2SQL } from "./transforms2sql";
 
 // connect to MapD server; start session
 const connection = new (window as any).MapdCon()
@@ -28,57 +29,24 @@ function displayOriginalSpec(container: HTMLDivElement, spec: any) {
   const ogSpecCode = <HTMLElement>document.createElement("pre");
   ogSpecCode.classList.add("prettyprint");
   ogSpecCode.innerHTML = JSON.stringify(spec, null, 4);
-  ogSpecContainer.innerHTML = "<h3>Original Specification</h3>";
+  ogSpecContainer.innerHTML = "<h3>Original Specification Data</h3>";
   ogSpecContainer.appendChild(ogSpecCode);
   container.appendChild(ogSpecContainer);
 }
-function embedVisualization(containerID: string, spec: any) {
-  console.log(containerID);
-  embed(
-    containerID,
-    spec,
-    { defaultStyle: true }
-  ).then(view => {
-    console.log(view)
-  });
-}
-function loadDemo(specName: string): void {
-  const containerName = specName + "-container"
-  const container: HTMLDivElement = <HTMLDivElement>document.getElementById(containerName);
-  getSpec(specName).then(spec => {
-    displayOriginalSpec(container, spec)
-    embedVisualization("#" + specName + "-viz", spec)
-    // Insert visualization
-    /*
-    session.then(s => {
-      s.queryAsync(sql).then(values => {
-        // load visualization
-      });
-    });
-    */
-  });
-  /*
 
-  // Insert modified vega spec
-  const modifiedSpec = extractTransforms(spec, defaultConfig);
-
+function displayModifiedSpec(container: HTMLDivElement, spec: any) {
   const modifiedSpecContainer = <HTMLDivElement>document.createElement("div");
   const modifiedSpecCode = <HTMLElement>document.createElement("pre");
   modifiedSpecCode.classList.add("prettyprint");
-  modifiedSpecCode.innerHTML = JSON.stringify(modifiedSpec, null, 4);
+  modifiedSpecCode.innerHTML = JSON.stringify(spec, null, 4);
 
   modifiedSpecContainer.innerHTML =
-    "<h3>Specification w/ Extracted Transforms</h3>";
+    "<h3>Modified Specification Data</h3>";
   modifiedSpecContainer.appendChild(modifiedSpecCode);
   container.appendChild(modifiedSpecContainer);
+}
 
-  // Insert transformation SQL
-  const transforms = modifiedSpec.transform;
-  const selects = selectedFields(spec);
-  selects.splice(selects.length - 1, 1);
-  delete modifiedSpec.transform;
-  const sql = Transforms2SQL.convert(table, selects, transforms);
-
+function displaySQL(container: HTMLDivElement, sql: string) {
   const sqlContainer = <HTMLDivElement>document.createElement("div");
   const sqlCode = <HTMLElement>document.createElement("pre");
   sqlCode.classList.add("prettyprint");
@@ -87,20 +55,36 @@ function loadDemo(specName: string): void {
   sqlContainer.innerHTML = "<h3>Transforms as SQL</h3>";
   sqlContainer.appendChild(sqlCode);
   container.appendChild(sqlContainer);
-
-  // Insert visualization
-  session.then(s => {
-    s.queryAsync(sql).then(values => {
-      // load visualization
-      embed(
-        "#" + containerName + "-viz",
-        Object.assign({ data: { values } }, modifiedSpec),
-        { defaultStyle: true }
-      );
-    });
-  });
-  */
 }
 
-// loadDemo("barchart", vlBarchart);
+function embedVisualization(containerID: string, spec: any, sql: string) {
+    session.then(s => {
+      s.queryAsync(sql).then(values => {
+        embed(
+          containerID,
+          spec,
+          { defaultStyle: true }
+        ).then(res => {
+          const view = res.view
+          view.change('source', vega.changeset().insert(values)).run();
+        });
+    });
+  });
+}
+
+function loadDemo(specName: string): void {
+  const containerName = specName + "-container"
+  const container: HTMLDivElement = <HTMLDivElement>document.getElementById(containerName);
+  getSpec(specName).then(spec => {
+    const selects = ['flight_dayofmonth', 'flight_month']
+    const [exSpec, sql] = Transforms2SQL.extractVGTransforms(spec, table, selects);
+
+    displayOriginalSpec(container, spec.data);
+    displayModifiedSpec(container, exSpec.data);
+    displaySQL(container, sql);
+
+    embedVisualization("#" + specName + "-viz", exSpec, sql)
+  });
+}
+
 loadDemo("flights_heatmap");
