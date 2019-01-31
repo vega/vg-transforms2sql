@@ -23,9 +23,8 @@ getSpec(spec).then(spec => {
     const binTransform    = spec.data[1].transform[1];
     const aggTransform    = spec.data[1].transform[2];
 
-    // Delete extent transform from spec (Necessary?)
-    // and insert signal w/ default value (doesn't work w/o).
-    delete spec.data[1].transform[0];
+    // Delete extent transform from spec (else get duplicate signal error)
+     delete spec.data[1].transform[0];
 
     // Get and execute query to get field extent
     const extentSQL = Transforms2SQL.extentQuery(table, extentTransform);
@@ -33,6 +32,7 @@ getSpec(spec).then(spec => {
         s.queryAsync(extentSQL).then(extent => {
             const min = extent[0].fmin;
             const max = extent[0].fmax;
+            // Manually insert extent signal
             spec["signals"] = [{name: extentTransform.signal, value: [min, max]}]
 
             // Embed visualization
