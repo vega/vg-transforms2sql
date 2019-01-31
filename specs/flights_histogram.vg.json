@@ -1,0 +1,122 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v4.json",
+  "autosize": "pad",
+  "padding": 5,
+  "width": 200,
+  "height": 200,
+  "style": "cell",
+  "data": [
+    {"name": "source"},
+    {
+      "name": "data_0",
+      "source": "source",
+      "transform": [
+        {
+          "type": "extent",
+          "field": "deptime",
+          "signal": "bin_maxbins_15_deptime_extent"
+        },
+        {
+          "type": "bin",
+          "field": "deptime",
+          "as": ["bin_maxbins_15_deptime", "bin_maxbins_15_deptime_end"],
+          "signal": "bin_maxbins_15_deptime_bins",
+          "maxbins": 15,
+          "extent": {"signal": "bin_maxbins_15_deptime_extent"}
+        },
+        {
+          "type": "aggregate",
+          "groupby": ["bin_maxbins_15_deptime", "bin_maxbins_15_deptime_end"],
+          "ops": ["count"],
+          "fields": ["*"],
+          "as": ["cnt"]
+        }
+      ]
+    },
+    {"name": "data_1"}
+  ],
+  "marks": [
+    {
+      "name": "marks",
+      "type": "rect",
+      "style": ["bar"],
+      "from": {"data": "data_1"},
+      "encode": {
+        "update": {
+          "fill": [
+            {
+              "test": "datum[\"bin_maxbins_15_deptime\"] === null || isNaN(datum[\"bin_maxbins_15_deptime\"]) || datum[\"cnt\"] === null || isNaN(datum[\"cnt\"])",
+              "value": null
+            },
+            {"value": "#4c78a8"}
+          ],
+          "tooltip": {
+            "signal": "{\"deptime (binned)\": datum[\"bin_maxbins_15_deptime\"] === null || isNaN(datum[\"bin_maxbins_15_deptime\"]) ? \"null\" : format(datum[\"bin_maxbins_15_deptime\"], \"\") + \" - \" + format(datum[\"bin_maxbins_15_deptime_end\"], \"\"), \"Count of Records\": format(datum[\"cnt\"], \"\")}"
+          },
+          "x2": {"scale": "x", "field": "bin_maxbins_15_deptime", "offset": 1},
+          "x": {"scale": "x", "field": "bin_maxbins_15_deptime_end"},
+          "y": {"scale": "y", "field": "cnt"},
+          "y2": {"scale": "y", "value": 0}
+        }
+      }
+    }
+  ],
+  "scales": [
+    {
+      "name": "x",
+      "type": "linear",
+      "domain": {
+        "data": "data_1",
+        "fields": ["bin_maxbins_15_deptime", "bin_maxbins_15_deptime_end"]
+      },
+      "range": [0, {"signal": "width"}],
+      "zero": false
+    },
+    {
+      "name": "y",
+      "type": "linear",
+      "domain": {"data": "data_1", "field": "cnt"},
+      "range": [{"signal": "height"}, 0],
+      "nice": true,
+      "zero": true
+    }
+  ],
+  "axes": [
+    {
+      "scale": "x",
+      "orient": "bottom",
+      "grid": false,
+      "title": "deptime (binned)",
+      "labelFlush": true,
+      "labelOverlap": true,
+      "tickCount": {"signal": "ceil(width/10)"},
+      "values": {
+        "signal": "sequence(bin_maxbins_15_deptime_bins.start, bin_maxbins_15_deptime_bins.stop + bin_maxbins_15_deptime_bins.step, bin_maxbins_15_deptime_bins.step)"
+      },
+      "zindex": 1
+    },
+    {
+      "scale": "y",
+      "orient": "left",
+      "grid": false,
+      "title": "Count of Records",
+      "labelOverlap": true,
+      "tickCount": {"signal": "ceil(height/40)"},
+      "zindex": 1
+    },
+    {
+      "scale": "y",
+      "orient": "left",
+      "gridScale": "x",
+      "grid": true,
+      "tickCount": {"signal": "ceil(height/40)"},
+      "domain": false,
+      "labels": false,
+      "maxExtent": 0,
+      "minExtent": 0,
+      "ticks": false,
+      "zindex": 0
+    }
+  ],
+  "config": {"axisY": {"minExtent": 30}}
+}
