@@ -6,7 +6,7 @@
   "scripts": {
     "start": "cp -R ./specs ./dist && parcel src/index.html --out-dir dist/",
     "clean": "rm -rf dist && rm -rf .cache && rm -rf build",
-    "build:demos": "parcel build --public-url '/vg-transforms2sql/' src/index.html",
+    "build:demos": "parcel build --public-url '/vg-transforms2sql/' src/index.html && cp -R ./specs ./dist",
     "deploy:demos": "npm run clean && npm run build:demos && gh-pages -d dist"
   },
   "devDependencies": {
